@@ -5,8 +5,8 @@
 
 当指定进程位于前台时
 
-![](C:\Users\悦\Desktop\劫持进程.gif)
+![](劫持进程.gif)
 
 当指定activity位于前台时
 
-![](C:\Users\悦\Desktop\劫持界面.gif)
+![](劫持界面.gif)
