@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import com.sy.hijackapp.HijackApplication;
 import com.sy.hijackapp.service.HijackService;
 
 /**
@@ -17,10 +16,10 @@ public class HijackReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
-            Log.w(HijackApplication.TAG, "启动劫持服务：开机启动");
+            Log.w(HijackService.TAG, "启动劫持服务：开机启动");
             Intent intent2 = new Intent(context, HijackService.class);
             context.startService(intent2);
-            Log.w(HijackApplication.TAG, "启动劫持服务成功！");
+            Log.w(HijackService.TAG, "启动劫持服务成功！");
         }
     }
 }

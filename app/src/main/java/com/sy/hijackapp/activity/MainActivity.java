@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import com.sy.hijackapp.HijackApplication;
 import com.sy.hijackapp.R;
 import com.sy.hijackapp.service.HijackService;
 
@@ -31,19 +30,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if (v.getId() == R.id.btn_hijack) {
             if (serviceHasStarted) {
 
-                Log.w(HijackApplication.TAG, "停止劫持服务：Activity停止");
+                Log.w(HijackService.TAG, "停止劫持服务：Activity停止");
                 Intent intent = new Intent(this, HijackService.class);
                 stopService(intent);//停止劫持服务
-                Log.w(HijackApplication.TAG, "停止劫持服务成功！");
+                Log.w(HijackService.TAG, "停止劫持服务成功！");
 
                 btn_hijack.setText("启动劫持服务");
                 serviceHasStarted = !serviceHasStarted;
             } else {
 
-                Log.w(HijackApplication.TAG, "启动劫持服务：Activity启动");
+                Log.w(HijackService.TAG, "启动劫持服务：Activity启动");
                 Intent intent = new Intent(this, HijackService.class);
                 startService(intent);//启动劫持服务
-                Log.w(HijackApplication.TAG, "启动劫持服务成功！");
+                Log.w(HijackService.TAG, "启动劫持服务成功！");
 
                 btn_hijack.setText("停止劫持服务");
                 serviceHasStarted = !serviceHasStarted;

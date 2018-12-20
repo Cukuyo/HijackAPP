@@ -8,9 +8,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import com.sy.hijackapp.HijackApplication;
 import com.sy.hijackapp.activity.HijackActivity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,13 +22,17 @@ import java.util.List;
  **/
 public class HijackService extends Service {
 
+    public static String TAG = "HijackAPP";
+
     private long delayMillis = 1000;//枚举间隔时间
 
     private boolean hasStarted = false;//是否已经启动。防止多个启动Intent
 
-    private boolean stopService = false;
+    private boolean stopService = false;//停止枚举线程的标志位
 
     private HashMap<String, Class<?>> hijackAppMap = new HashMap<>();//保存要劫持的app信息
+
+    private List<String> hijackedAppList = new ArrayList();//保存已劫持的app信息
 
     private Handler handler = new Handler();//执行枚举的handler
 
@@ -40,8 +44,10 @@ public class HijackService extends Service {
          */
         @Override
         public void run() {
-            if (stopService)
+            if (stopService) {
+                hasStarted = false;
                 return;
+            }
 
             ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
 
@@ -60,13 +66,13 @@ public class HijackService extends Service {
 //                // 进行劫持
 //                hijacking(className);
 //            } else {
-//                Log.w(HijackApplication.TAG, className);
+//                Log.w(TAG, className);
 //            }
 
 
             //劫持方式二：枚举指定前台进程
             List<ActivityManager.RunningAppProcessInfo> appProcessInfos = activityManager.getRunningAppProcesses();
-            Log.w(HijackApplication.TAG, "正在枚举进程");
+            Log.w(TAG, "正在枚举进程");
             for (ActivityManager.RunningAppProcessInfo appProcessInfo : appProcessInfos) {
 
                 //IMPORTANCE_FOREGROUND：这个进程正在运行前台UI，也就是说，它是当前在屏幕顶部的东西，用户正在进行交互的而进程
@@ -75,7 +81,7 @@ public class HijackService extends Service {
                         // 进行劫持
                         hijacking(appProcessInfo.processName);
                     } else {
-                        Log.w(HijackApplication.TAG, appProcessInfo.processName);
+                        Log.w(TAG, appProcessInfo.processName);
                     }
                 }
             }
@@ -88,15 +94,15 @@ public class HijackService extends Service {
          * @param processName
          */
         private void hijacking(String processName) {
-            if (((HijackApplication) getApplication()).hasAppBeHijacked(processName) == false) {
-                Log.w(HijackApplication.TAG, "正在劫持：" + processName);
+            if (hijackedAppList.contains(processName) == false) {
+                Log.w(TAG, "正在劫持：" + processName);
 
                 Intent intent = new Intent(getBaseContext(), hijackAppMap.get(processName));
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getApplication().startActivity(intent);
-                ((HijackApplication) getApplication()).addHijackedApp(processName);
+                hijackedAppList.add(processName);
 
-                Log.w(HijackApplication.TAG, "劫持成功：" + processName);
+                Log.w(TAG, "劫持成功：" + processName);
             }
         }
     };
@@ -109,25 +115,38 @@ public class HijackService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!hasStarted) {
-            hijackAppMap.put("de.robv.android.xposed.installer", HijackActivity.class);
-
-            stopService = false;
-            handler.postDelayed(mTask, delayMillis);
-
-            hasStarted = true;
-        }
+        safeStopHijack();
+        safeStartHijack();
 
         return super.onStartCommand(intent, flags, startId);
     }
 
-
     @Override
     public void onDestroy() {
-        stopService = true;
-        ((HijackApplication) getApplication()).clearHijackedApp();
+        safeStopHijack();
 
-        hasStarted = false;
         super.onDestroy();
     }
+
+    private void safeStopHijack() {
+        if (hasStarted) {
+            stopService = true;
+            hijackedAppList.clear();
+            while (hasStarted) {
+                //循环等待线程退出
+            }
+        }
+    }
+
+    private void safeStartHijack() {
+        //放入劫持app的数据
+        hijackAppMap.put("de.robv.android.xposed.installer", HijackActivity.class);
+        //开启枚举线程
+        stopService = false;
+        handler.postDelayed(mTask, delayMillis);
+
+        hasStarted = true;
+    }
+
+
 }
